@@ -1,66 +1,45 @@
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.random.Random
-
-data class Human(
-    var fullName: String,
-    var age: Int,
-    var currentSpeed: Double,
-    var x: Double = 0.0,
+class Human(t_name: String, t_age: Int, t_current_speed: Int){
+    var name: String = t_name
+    var age: Int = t_age
+    var current_speed = t_current_speed
+    var x: Double = 0.0
     var y: Double = 0.0
-) {
-    fun move() {
-        // Генерируем случайный угол в радианах от 0 до 2 * PI
-        val angle = Random.nextDouble(0.0, 2 * Math.PI)
-
-        // Рассчитываем смещение по осям X и Y
-        val deltaX = currentSpeed * cos(angle)
-        val deltaY = currentSpeed * sin(angle)
-
-        // Обновляем текущие координаты
-        x += deltaX
-        y += deltaY
-
-        println("$fullName движется в ($x, $y)")
+    fun move(){
+        val r: Double = Random.nextDouble(0.0,2*Math.PI)
+        x += current_speed * sin(r)
+        y += current_speed * cos(r)
+        println("$name перешел в ($x ;$y)")
     }
 }
 
+fun main(){
+    val time: Int = 10
+    val people = arrayOfNulls<Human>(7)
 
-fun main() {
-    // 1. Создаем массив экземпляров класса Human
-    val numberOfHumans = 7
-    val humans = mutableListOf<Human>()
+    for (i in 0..6){
+        val newHuman = Human(t_name = "человек номер ${i+1}", t_age = Random.nextInt(1,65), t_current_speed = Random.nextInt(1,5))
+        people[i] = newHuman
+    }
+    println("созданные люди:")
+    for (i in 0..6){
+        println("${i+1}. ${people[i]?.name}, возраст: ${people[i]?.age}, скорость: ${people[i]?.current_speed}")
 
-    for (i in 1..numberOfHumans) {
-        humans.add(
-            Human(
-                fullName = "Человек №$i",
-                age = Random.nextInt(18, 60), // Случайный возраст от 18 до 59
-                currentSpeed = Random.nextDouble(1.0, 5.0) // Случайная скорость от 1.0 до 4.99
-            )
-        )
     }
 
-    // 2. Задаем время симуляции в "секундах" (итерациях)
-    val simulationTime = 10 // Симуляция будет длиться 10 секунд
-
-    println("--- НАЧАЛО СИМУЛЯЦИИ ---")
-
-    // 3. Основной цикл времени
-    for (time in 1..simulationTime) {
-        println("\n--- Время: $time секунда ---")
-
-        // Заставляем каждого человека ходить
-        for (human in humans) {
-            human.move()
+    println("-----Запуск симуляции-----\n")
+    for (i in 1..time) {
+        for (i in 0..6) {
+            people[i]?.move()
         }
     }
 
-    println("\n--- КОНЕЦ СИМУЛЯЦИИ ---")
-
-    // Выведем конечное положение всех людей
-    println("\nИтоговое положение:")
-    humans.forEach {
-        println("${it.fullName} остановился в точке (${String.format("%.2f", it.x)}, ${String.format("%.2f", it.y)})")
+    for (i in 0..6) {
+        println("${i+1}. ${people[i]?.name}, конечная точка: (${people[i]?.x}, ${people[i]?.x})")
     }
+
+
+
 }
