@@ -1,12 +1,12 @@
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.random.Random
-class Human(t_name: String, t_age: Int, t_current_speed: Int){
-    var name: String = t_name
-    var age: Int = t_age
-    var current_speed = t_current_speed
-    var x: Double = 0.0
-    var y: Double = 0.0
+class Human(t_name: String , t_age: Int , t_current_speed: Int ){
+    private var name: String = t_name
+    private var age: Int = t_age
+    private var current_speed = t_current_speed
+    private var x: Double = 0.0
+    private var y: Double = 0.0
 
     fun move(){
         val r: Double = Random.nextDouble(0.0,2*Math.PI)
@@ -57,17 +57,18 @@ fun main(){
     val people = arrayOfNulls<Human>(7)
 
     for (i in 0..6){
-        val newHuman: Human
-        newHuman.setName("человек $i")
-        newHuman.setAge(Random.nextInt(0,1))
-        newHuman.setCurrent(Random.nextInt(0,9))
-
-
+        // Инициализация через конструктор
+        val newHuman = Human(
+            "человек $i",
+            Random.nextInt(18, 80), // Возраст от 18 до 79
+            Random.nextInt(1, 10)   // Скорость от 1 до 9
+        )
         people[i] = newHuman
     }
+
     println("созданные люди:")
     for (i in 0..6){
-        println("${i+1}. ${people[i]?.name}, возраст: ${people[i]?.age}, скорость: ${people[i]?.current_speed}")
+        println("${i+1}. ${people[i]?.getName()}, возраст: ${people[i]?.getAge()}, скорость: ${people[i]?.getCurrentSpeed()}")
 
     }
 
@@ -79,7 +80,7 @@ fun main(){
     }
 
     for (i in 0..6) {
-        println("${i+1}. ${people[i]?.name}, конечная точка: (${people[i]?.x}, ${people[i]?.x})")
+        println("${i+1}. ${people[i]?.getName()}, конечная точка: (${people[i]?.getX()}, ${people[i]?.getY()})")
     }
 
 
