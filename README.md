@@ -75,12 +75,14 @@ $$
 ## Структура проекта
 app/
 ├── src/main/
-│ ├── java/com/example/myapp/
-│ │ ├── Movable/
-│ │ │ └──human.kt   
-│ │ └── MainActivity.kt
-│ ├── res/
-│ │ ├── layout/
-│ │ │ └── activity_main.xml
-│ │ └── values/
-│ │ └── strings.xml, colors.xml, etc.
+│   ├── java/com/example/myapp/
+│   │   ├── Movable/
+│   │   │   └── human.kt
+│   │   └── MainActivity.kt
+│   ├── res/
+│   │   ├── layout/
+│   │   │   └── activity_main.xml
+│   │   └── values/
+│   │       └── strings.xml, colors.xml, etc.
+│   └── AndroidManifest.xml
+└── build.gradle
