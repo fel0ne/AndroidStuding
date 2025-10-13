@@ -67,7 +67,6 @@ $$
 
 - **Язык программирования**: Kotlin
 - **Минимальная версия Android**: API 21 (Android 5.0)
-- **Архитектура**: MVC (Model-View-Controller)
 - **Основные компоненты**:
   - `MainActivity` - основная активность
   - `activity_main.xml` - layout файл с UI элементами
