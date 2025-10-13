@@ -73,3 +73,14 @@ $$
   - `activity_main.xml` - layout файл с UI элементами
 
 ## Структура проекта
+app/
+├── src/main/
+│ ├── java/com/example/myapp/
+│ │ ├── Movable/
+│ │ │ └──human.kt   
+│ │ └── MainActivity.kt
+│ ├── res/
+│ │ ├── layout/
+│ │ │ └── activity_main.xml
+│ │ └── values/
+│ │ └── strings.xml, colors.xml, etc.
