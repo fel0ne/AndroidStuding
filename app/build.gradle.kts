@@ -5,11 +5,11 @@ plugins {
 
 android {
     namespace = "com.example.myapp"
+    //noinspection GradleDependency
     compileSdk = 36
-
     defaultConfig {
         applicationId = "com.example.myapp"
-        minSdk = 29
+        minSdk = 28
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
@@ -28,6 +28,7 @@ android {
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
+
         targetCompatibility = JavaVersion.VERSION_11
     }
     kotlinOptions {

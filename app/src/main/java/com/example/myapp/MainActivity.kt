@@ -6,14 +6,14 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import android.widget.Button
-import android.widget.TextView
 import android.content.Intent
 //import kotlin.jvm.java
 
 
 class MainActivity : AppCompatActivity() {
-    //var playerButton : Button? = null
-    //var calcButton : Button? = null
+    lateinit var playerButton : Button
+    lateinit var calcButton : Button
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -23,9 +23,17 @@ class MainActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
-        val playerButton: Button  = findViewById(R.id.PlayerButton)
-        val calcButton: Button = findViewById(R.id.CalcButton)
+        playerButton  = findViewById(R.id.PlayerButton)
+        calcButton = findViewById(R.id.CalcButton)
 
+
+
+
+
+
+    }
+    override fun onResume(){
+        super.onResume()
         calcButton.setOnClickListener {
             val CalcIntent = Intent(this,CalcActivity::class.java)
             startActivity(CalcIntent)
@@ -34,14 +42,5 @@ class MainActivity : AppCompatActivity() {
             val PlayerIntent = Intent(this,PlayerActivity::class.java)
             startActivity(PlayerIntent)
         }
-
-
-
     }
-//    override fun onStart(){
-//        super.onStart()
-//        calcButton.setOnClickListener {  }
-//
-//
-//    }
 }
