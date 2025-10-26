@@ -105,8 +105,8 @@ app/
 │   ├── java/com/example/myapp/  
 │   │   ├── Movable/  
 │   │   │   └── human.kt  
-│   │   ├── PlayerActivity.kt 
-│   │   ├── CalcActivity.kt 
+│   │   ├── PlayerActivity.kt  
+│   │   ├── CalcActivity.kt  
 │   │   └── MainActivity.kt  
 │   ├── res/  
 │   │   ├── layout/  
