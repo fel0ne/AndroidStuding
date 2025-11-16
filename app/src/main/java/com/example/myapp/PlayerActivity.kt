@@ -189,7 +189,7 @@ class PlayerActivity : AppCompatActivity() {
         requestPermessionLauncher.launch(READ_EXTERNAL_STORAGE)
 
         musicPath = Environment.getExternalStorageDirectory().path + "/Music/"
-        //Toast.makeText(this,musicPath, Toast.LENGTH_LONG).show()
+        Toast.makeText(this,musicPath, Toast.LENGTH_LONG).show()
 
         mediaPlayer = MediaPlayer()
         retriver = MediaMetadataRetriever()

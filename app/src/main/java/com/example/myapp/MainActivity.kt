@@ -14,6 +14,8 @@ class MainActivity : AppCompatActivity() {
     lateinit var playerButton : Button
     lateinit var calcButton : Button
 
+    lateinit var locButton : Button
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -25,6 +27,7 @@ class MainActivity : AppCompatActivity() {
         }
         playerButton  = findViewById(R.id.PlayerButton)
         calcButton = findViewById(R.id.CalcButton)
+        locButton = findViewById(R.id.LocButton)
 
 
 
@@ -41,6 +44,10 @@ class MainActivity : AppCompatActivity() {
         playerButton.setOnClickListener {
             val PlayerIntent = Intent(this,PlayerActivity::class.java)
             startActivity(PlayerIntent)
+        }
+        locButton.setOnClickListener {
+            val LocationIntent = Intent(this,LocationActivity::class.java)
+            startActivity(LocationIntent)
         }
     }
 }
