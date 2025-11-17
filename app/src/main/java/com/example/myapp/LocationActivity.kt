@@ -57,7 +57,7 @@ class LocationActivity : LocationListener, AppCompatActivity()  {
             insets
         }
 
-        // Инициализация UI и сервисов
+
         locationManager = this.getSystemService(Context.LOCATION_SERVICE) as LocationManager
         tvLat = findViewById(R.id.tv_lat) as TextView
         tvLon = findViewById(R.id.tv_lon) as TextView
@@ -71,24 +71,21 @@ class LocationActivity : LocationListener, AppCompatActivity()  {
         storageDir = android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_DOCUMENTS)
 
 
-        upBut.setOnClickListener {
+        requestLocationUpdates()
 
-            getLastKnownLocation()
-        }
+
     }
 
     override fun onResume() {
         super.onResume()
 
-        if (checkPermissions() && isLocationEnabled()) {
-            getLastKnownLocation()
-        }
+
     }
 
     override fun onPause() {
         super.onPause()
 
-        stopLocationUpdates()
+        //stopLocationUpdates()
     }
 
     private fun stopLocationUpdates() {
@@ -100,55 +97,7 @@ class LocationActivity : LocationListener, AppCompatActivity()  {
     }
 
 
-    private fun getLastKnownLocation() {
-        if (!checkPermissions()) {
-            requestPermissions()
-            return
-        }
-        if (!isLocationEnabled()) {
-            Toast.makeText(this, "Включите службы местоположения", Toast.LENGTH_SHORT).show()
-            val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
-            startActivity(intent)
-            return
-        }
 
-        try {
-
-            if (ActivityCompat.checkSelfPermission(
-                    this, Manifest.permission.ACCESS_FINE_LOCATION
-                ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
-                    this, Manifest.permission.ACCESS_COARSE_LOCATION
-                ) != PackageManager.PERMISSION_GRANTED
-            ) {
-                return
-            }
-
-
-            val providers = locationManager.getProviders(true)
-            var bestLocation: Location? = null
-            for (provider in providers) {
-                val location = locationManager.getLastKnownLocation(provider)
-                if (location != null && (bestLocation == null || location.accuracy < bestLocation.accuracy)) {
-                    bestLocation = location
-                }
-            }
-
-            if (bestLocation != null) {
-                lastLocation = bestLocation
-                updateLocationUI(bestLocation, "Кэш")
-                Log.d(LOG_TAG, "Получено последнее известное местоположение (Кэш)")
-                stopLocationUpdates()
-            } else {
-                Toast.makeText(this, "Кэш пуст. Запускаю активный поиск...", Toast.LENGTH_SHORT).show()
-
-                requestLocationUpdates()
-            }
-
-        } catch (e: Exception) {
-            Log.e(LOG_TAG, "Ошибка при получении последнего известного местоположения", e)
-            Toast.makeText(this, "Ошибка получения местоположения", Toast.LENGTH_SHORT).show()
-        }
-    }
 
     private fun requestLocationUpdates(){
         if(checkPermissions() && isLocationEnabled()){
@@ -163,12 +112,12 @@ class LocationActivity : LocationListener, AppCompatActivity()  {
                     return
                 }
 
-                locationManager.requestLocationUpdates(
-                    LocationManager.GPS_PROVIDER,
-                    1000L,
-                    1f,
-                    this
-                )
+//                locationManager.requestLocationUpdates(
+//                    LocationManager.GPS_PROVIDER,
+//                    1000L,
+//                    1f,
+//                    this
+//                )
                 locationManager.requestLocationUpdates(
                     LocationManager.NETWORK_PROVIDER,
                     1000L,
@@ -190,13 +139,13 @@ class LocationActivity : LocationListener, AppCompatActivity()  {
     private fun updateLocationUI(location: Location, source: String) {
         tvLat.setText("Широта: ${location.latitude}")
         tvLon.setText("Долгота: ${location.longitude} (Источник: $source)")
-        saveLocationToJson(location, source) // Сохранение в файл
+        saveLocationToJson(location, source)
     }
 
 
     override fun onLocationChanged(location: Location) {
         lastLocation = location
-        // Если пришло новое, более точное местоположение
+
         updateLocationUI(location, "Live ${location.provider}")
     }
 
@@ -281,7 +230,7 @@ class LocationActivity : LocationListener, AppCompatActivity()  {
         {
             if(grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED){
                 Toast.makeText(applicationContext, "Разрешение предоставлено", Toast.LENGTH_SHORT).show()
-                getLastKnownLocation()
+                //getLastKnownLocation()
             } else {
                 Toast.makeText(applicationContext, "Отказано пользователем", Toast.LENGTH_SHORT).show()
             }
