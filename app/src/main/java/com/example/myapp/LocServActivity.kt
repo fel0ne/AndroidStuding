@@ -18,22 +18,22 @@ import androidx.core.app.ActivityCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import android.location.LocationListener
-
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
-import java.io.File
-import java.io.FileOutputStream
-import java.io.PrintWriter
-import java.text.SimpleDateFormat
-import java.util.Locale
+import okhttp3.*
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.RequestBody.Companion.toRequestBody
 
-class LocationActivity : LocationListener, AppCompatActivity()  {
+import java.util.concurrent.TimeUnit
+
+class LocServActivity : LocationListener, AppCompatActivity()  {
 
     val LOG_TAG: String = "LOCATION_ACTIVITY"
 
+    private val PERMISSION_REQUEST_ACCESS_LOCATION = 100
 
-    private val PERMISSION_REQUEST_ACCESS_LOCATION= 100
-    private  val LOCATION_FILE_NAME = "location_history.json"
+
+    private val SERVER_URL = "http://212.164.112.171:8000/push"
 
     private lateinit var locationManager: LocationManager
     private lateinit var tvLat: TextView
@@ -42,21 +42,29 @@ class LocationActivity : LocationListener, AppCompatActivity()  {
     private lateinit var tvAppContext: TextView
     private lateinit var tvActivityContext: TextView
 
-    private lateinit var storageDir: File
+
 
     private val gson: Gson = GsonBuilder().create()
     private var lastLocation: Location? = null
 
+
+    private val client: OkHttpClient by lazy {
+        OkHttpClient.Builder()
+            .connectTimeout(10, TimeUnit.SECONDS)
+            .writeTimeout(10, TimeUnit.SECONDS)
+            .readTimeout(10, TimeUnit.SECONDS)
+            .build()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContentView(R.layout.activity_location)
+        setContentView(R.layout.activity_loc_serv)
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
-
 
         locationManager = this.getSystemService(Context.LOCATION_SERVICE) as LocationManager
         tvLat = findViewById(R.id.tv_lat) as TextView
@@ -68,25 +76,21 @@ class LocationActivity : LocationListener, AppCompatActivity()  {
         tvAppContext.setText(applicationContext.toString())
         tvActivityContext.setText(this.toString())
 
-        storageDir = android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_DOCUMENTS)
 
 
         requestLocationUpdates()
 
 
+        upBut.setOnClickListener {
+            lastLocation?.let { location ->
+                sendLocationToServer(location, "manual")
+            } ?: run {
+                Toast.makeText(this, "Нет данных о местоположении", Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
-    override fun onResume() {
-        super.onResume()
 
-
-    }
-
-    override fun onPause() {
-        super.onPause()
-
-        //stopLocationUpdates()
-    }
 
     private fun stopLocationUpdates() {
         try {
@@ -96,13 +100,9 @@ class LocationActivity : LocationListener, AppCompatActivity()  {
         }
     }
 
-
-
-
     private fun requestLocationUpdates(){
         if(checkPermissions() && isLocationEnabled()){
             try {
-
                 if (ActivityCompat.checkSelfPermission(
                         this, Manifest.permission.ACCESS_FINE_LOCATION
                     ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
@@ -112,16 +112,17 @@ class LocationActivity : LocationListener, AppCompatActivity()  {
                     return
                 }
 
+
 //                locationManager.requestLocationUpdates(
 //                    LocationManager.GPS_PROVIDER,
-//                    1000L,
-//                    1f,
+//                    1000L,  // 5 секунд
+//                    0f,    // 10 метров
 //                    this
 //                )
                 locationManager.requestLocationUpdates(
                     LocationManager.NETWORK_PROVIDER,
-                    0L,
-                    1f,
+                    1000L,
+                    0.2f,
                     this
                 )
 
@@ -139,56 +140,63 @@ class LocationActivity : LocationListener, AppCompatActivity()  {
     private fun updateLocationUI(location: Location, source: String) {
         tvLat.setText("Широта: ${location.latitude}")
         tvLon.setText("Долгота: ${location.longitude} (Источник: $source)")
-        saveLocationToJson(location, source)
-    }
 
+
+
+        sendLocationToServer(location, source)
+    }
 
     override fun onLocationChanged(location: Location) {
         lastLocation = location
-
         updateLocationUI(location, "Live ${location.provider}")
     }
 
 
-    private fun saveLocationToJson(location: Location, source: String) {
-        try {
-            val locationData = LocationData(
-                latitude = location.latitude,
-                longitude = location.longitude,
-                accuracy = location.accuracy,
-                timestamp = location.time,
-                recordedTime = System.currentTimeMillis(),
-                source = source,
-                provider = location.provider ?: "N/A"
-            )
+    private fun sendLocationToServer(location: Location, source: String) {
+        val locationData = LocationData(
+            latitude = location.latitude,
+            longitude = location.longitude,
+            accuracy = location.accuracy,
+            timestamp = location.time,
+            recordedTime = System.currentTimeMillis(),
+            source = source,
+            provider = location.provider ?: "N/A"
+        )
 
-            val jsonString = gson.toJson(locationData)
-            val file = File(storageDir, LOCATION_FILE_NAME)
+        Thread {
+            try {
+                val mediaType = "application/json; charset=utf-8".toMediaType()
+                val jsonString = gson.toJson(locationData)
+                val body = jsonString.toRequestBody(mediaType)
 
+                Log.d(LOG_TAG, "Отправка данных: $jsonString")
+                Log.d(LOG_TAG, "URL: $SERVER_URL")
 
-            FileOutputStream(file, true).use { fos ->
-                PrintWriter(fos).apply {
+                val request = Request.Builder()
+                    .url(SERVER_URL)
+                    .post(body)
+                    .build()
 
-                    if (file.length() == 0L) {
-                        print("[")
-                    } else if (file.length() > 1 && file.absoluteFile.readText().endsWith("]")) {
-                        println(",")
-                    } else if (file.length() > 0) {
-                        println(",")
+                val response = client.newCall(request).execute()
+                val responseBody = response.body?.string()
+
+                runOnUiThread {
+                    if (response.isSuccessful) {
+                        Log.d(LOG_TAG, " УСПЕХ: Данные отправлены на сервер: $responseBody")
+                        Toast.makeText(this, "Данные отправлены!", Toast.LENGTH_SHORT).show()
+                    } else {
+                        Log.e(LOG_TAG, " Ошибка сервера: ${response.code} - $responseBody")
+                        Toast.makeText(this, "Ошибка сервера: ${response.code}", Toast.LENGTH_SHORT).show()
                     }
+                }
 
-                    print(jsonString)
-                    flush()
+            } catch (e: Exception) {
+                Log.e(LOG_TAG, "Ошибка отправки на сервер: ${e.message}", e)
+                runOnUiThread {
+                    Toast.makeText(this, "Ошибка сети: ${e.message}", Toast.LENGTH_LONG).show()
                 }
             }
-
-
-            Log.d(LOG_TAG, "Местоположение сохранено в JSON: ${file.absolutePath}")
-
-        } catch (e: Exception) {
-            Log.e(LOG_TAG, "Ошибка сохранения местоположения в JSON", e)
-
-        }
+        }.start()
     }
 
 
@@ -202,20 +210,33 @@ class LocationActivity : LocationListener, AppCompatActivity()  {
         val provider: String
     )
 
-
-
-
     private fun requestPermissions() {
-        Log.w(LOG_TAG, "requestPermissions()");
+        Log.w(LOG_TAG, "requestPermissions()")
         ActivityCompat.requestPermissions(
             this,
-            arrayOf(android.Manifest.permission.ACCESS_COARSE_LOCATION,
-                android.Manifest.permission.ACCESS_FINE_LOCATION),
+            arrayOf(
+                android.Manifest.permission.ACCESS_COARSE_LOCATION,
+                android.Manifest.permission.ACCESS_FINE_LOCATION
+            ),
             PERMISSION_REQUEST_ACCESS_LOCATION
         )
     }
+    override fun onResume() {
+        super.onResume()
+        stopService(Intent(this, LocationForegroundService::class.java))
+    }
 
-    private fun checkPermissions(): Boolean{
+    override fun onPause() {
+        super.onPause()
+        startService(Intent(this, LocationForegroundService::class.java))
+    }
+
+
+    override fun onDestroy() {
+        super.onDestroy()
+        stopService(Intent(this, LocationForegroundService::class.java))
+    }
+    private fun checkPermissions(): Boolean {
         return ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED &&
                 ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
     }
@@ -226,19 +247,19 @@ class LocationActivity : LocationListener, AppCompatActivity()  {
         grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if(requestCode == PERMISSION_REQUEST_ACCESS_LOCATION)
-        {
-            if(grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED){
+        if (requestCode == PERMISSION_REQUEST_ACCESS_LOCATION) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 Toast.makeText(applicationContext, "Разрешение предоставлено", Toast.LENGTH_SHORT).show()
-                //getLastKnownLocation()
+                requestLocationUpdates()
             } else {
                 Toast.makeText(applicationContext, "Отказано пользователем", Toast.LENGTH_SHORT).show()
             }
         }
     }
 
-    private fun isLocationEnabled(): Boolean{
+
+
+    private fun isLocationEnabled(): Boolean {
         return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) || locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
     }
-
 }
