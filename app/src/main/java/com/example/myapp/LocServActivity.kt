@@ -26,6 +26,8 @@ import okhttp3.RequestBody.Companion.toRequestBody
 
 import java.util.concurrent.TimeUnit
 
+//import
+
 class LocServActivity : LocationListener, AppCompatActivity()  {
 
     val LOG_TAG: String = "LOCATION_ACTIVITY"
